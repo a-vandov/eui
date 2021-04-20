@@ -118,17 +118,19 @@ export const EuiResizableContainer: FunctionComponent<EuiResizableContainerProps
     onPanelWidthChange,
   });
 
-  const initialize = useCallback(() => {
-    actions.initContainer();
-  }, [actions]);
-
   const containerSize = useResizeObserver(
     containerRef.current,
     isHorizontal ? 'width' : 'height'
   );
 
+  const initialize = useCallback(() => {
+    actions.initContainer(isHorizontal);
+  }, [actions, isHorizontal]);
+
   useEffect(() => {
-    initialize();
+    if (containerSize.width > 0 && containerSize.height > 0) {
+      initialize();
+    }
   }, [initialize, containerSize]);
 
   const onMouseDown = useCallback(
@@ -273,7 +275,7 @@ export const EuiResizableContainer: FunctionComponent<EuiResizableContainerProps
         onTouchMove={onMouseMove}
         onTouchEnd={onMouseUp}
         {...rest}>
-        {!!reducerState.containerSize && render()}
+        {render()}
       </div>
     </EuiResizableContainerContextProvider>
   );

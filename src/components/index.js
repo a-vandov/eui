@@ -224,6 +224,7 @@ export {
   EuiMarkdownFormat,
   getDefaultEuiMarkdownParsingPlugins,
   getDefaultEuiMarkdownProcessingPlugins,
+  getDefaultEuiMarkdownUiPlugins,
 } from './markdown_editor';
 export { EuiMark } from './mark';
 
@@ -240,6 +241,8 @@ export {
 
 export { EuiMutationObserver } from './observer/mutation_observer';
 
+export { EuiNotificationEvent } from './notification';
+
 export { EuiOutsideClickDetector } from './outside_click_detector';
 
 export { EuiOverlayMask } from './overlay_mask';
@@ -252,13 +255,15 @@ export {
   EuiPageContentHeader,
   EuiPageContentHeaderSection,
   EuiPageHeader,
+  EuiPageHeaderContent,
   EuiPageHeaderSection,
   EuiPageSideBar,
+  EuiPageTemplate,
 } from './page';
 
 export { EuiPagination, EuiPaginationButton } from './pagination';
 
-export { EuiPanel } from './panel';
+export { EuiPanel, EuiSplitPanel } from './panel';
 
 export {
   EuiInputPopover,
