@@ -1,20 +1,9 @@
 /*
- * Licensed to Elasticsearch B.V. under one or more contributor
- * license agreements. See the NOTICE file distributed with
- * this work for additional information regarding copyright
- * ownership. Elasticsearch B.V. licenses this file to you under
- * the Apache License, Version 2.0 (the "License"); you may
- * not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * Copyright Elasticsearch B.V. and/or licensed to Elasticsearch B.V. under one
+ * or more contributor license agreements. Licensed under the Elastic License
+ * 2.0 and the Server Side Public License, v 1; you may not use this file except
+ * in compliance with, at your election, the Elastic License 2.0 or the Server
+ * Side Public License, v 1.
  */
 
 import React, {
@@ -111,7 +100,7 @@ export interface EuiPopoverProps {
    */
   focusTrapProps?: Pick<
     EuiFocusTrapProps,
-    'clickOutsideDisables' | 'noIsolation' | 'scrollLock'
+    'clickOutsideDisables' | 'noIsolation' | 'scrollLock' | 'shards'
   >;
   /**
    * Show arrow indicating to originating button
@@ -122,8 +111,10 @@ export interface EuiPopoverProps {
    * node, or a selector string (which will be passed to
    * document.querySelector() to find the DOM node), or a function that
    * returns a DOM node
+   * Set to `false` to prevent initial auto-focus. Use only
+   * when your app handles setting initial focus state.
    */
-  initialFocus?: FocusTarget;
+  initialFocus?: FocusTarget | false;
   /**
    * Passed directly to EuiPortal for DOM positioning. Both properties are
    * required if prop is specified
@@ -358,6 +349,7 @@ export class EuiPopover extends Component<Props, State> {
   private updateFocusAnimationFrame: number | undefined;
   private button: HTMLElement | null = null;
   private panel: HTMLElement | null = null;
+  private hasSetInitialFocus: boolean = false;
 
   constructor(props: Props) {
     super(props);
@@ -408,12 +400,19 @@ export class EuiPopover extends Component<Props, State> {
   updateFocus() {
     // Wait for the DOM to update.
     this.updateFocusAnimationFrame = window.requestAnimationFrame(() => {
-      if (!this.props.ownFocus || !this.panel) {
+      if (
+        !this.props.ownFocus ||
+        !this.panel ||
+        this.props.initialFocus === false
+      ) {
         return;
       }
 
       // If we've already focused on something inside the panel, everything's fine.
-      if (this.panel.contains(document.activeElement)) {
+      if (
+        this.hasSetInitialFocus &&
+        this.panel.contains(document.activeElement)
+      ) {
         return;
       }
 
@@ -453,12 +452,18 @@ export class EuiPopover extends Component<Props, State> {
         }
       }
 
-      if (focusTarget != null) focusTarget.focus();
+      if (focusTarget != null) {
+        this.hasSetInitialFocus = true;
+        focusTarget.focus();
+      }
     });
   }
 
   onOpenPopover = () => {
     clearTimeout(this.closingTransitionTimeout);
+    if (this.closingTransitionAnimationFrame) {
+      cancelAnimationFrame(this.closingTransitionAnimationFrame);
+    }
     // We need to set this state a beat after the render takes place, so that the CSS
     // transition can take effect.
     this.closingTransitionAnimationFrame = window.requestAnimationFrame(() => {
@@ -485,6 +490,7 @@ export class EuiPopover extends Component<Props, State> {
         { durationMatch: 0, delayMatch: 0 }
       );
 
+    clearTimeout(this.respositionTimeout);
     this.respositionTimeout = window.setTimeout(() => {
       this.setState({ isOpenStable: true }, () => {
         this.positionPopoverFixed();
@@ -506,8 +512,6 @@ export class EuiPopover extends Component<Props, State> {
     if (this.props.repositionOnScroll) {
       window.addEventListener('scroll', this.positionPopoverFixed);
     }
-
-    this.updateFocus();
   }
 
   componentDidUpdate(prevProps: Props) {
@@ -530,6 +534,7 @@ export class EuiPopover extends Component<Props, State> {
       // If the user has just closed the popover, queue up the removal of the content after the
       // transition is complete.
       this.closingTransitionTimeout = window.setTimeout(() => {
+        this.hasSetInitialFocus = false;
         this.setState({
           isClosing: false,
         });
@@ -689,6 +694,7 @@ export class EuiPopover extends Component<Props, State> {
       'aria-labelledby': ariaLabelledBy,
       container,
       focusTrapProps,
+      tabIndex: tabIndexProp,
       ...rest
     } = this.props;
 
@@ -719,13 +725,13 @@ export class EuiPopover extends Component<Props, State> {
     let panel;
 
     if (!this.state.suppressingPopover && (isOpen || this.state.isClosing)) {
-      let tabIndex;
+      let tabIndex = tabIndexProp;
       let initialFocus;
       let ariaDescribedby;
       let ariaLive: HTMLAttributes<any>['aria-live'];
 
       if (ownFocus) {
-        tabIndex = 0;
+        tabIndex = tabIndexProp ?? 0;
         ariaLive = 'off';
 
         initialFocus = () => this.panel!;
@@ -767,7 +773,8 @@ export class EuiPopover extends Component<Props, State> {
             onEscapeKey={this.onEscapeKey}
             disabled={
               !ownFocus || !this.state.isOpenStable || this.state.isClosing
-            }>
+            }
+          >
             <EuiPanel
               {...(panelProps as EuiPanelProps)}
               panelRef={this.panelRef}
@@ -787,7 +794,8 @@ export class EuiPopover extends Component<Props, State> {
                 willChange: !this.state.isOpenStable
                   ? 'transform, opacity'
                   : undefined,
-              }}>
+              }}
+            >
               <div className={arrowClassNames} style={this.state.arrowStyles}>
                 {arrowChildren}
               </div>
@@ -799,7 +807,8 @@ export class EuiPopover extends Component<Props, State> {
                   characterData: true, // text changes
                   subtree: true, // watch all child elements
                 }}
-                onMutation={this.onMutation}>
+                onMutation={this.onMutation}
+              >
                 {(mutationRef) => <div ref={mutationRef}>{children}</div>}
               </EuiMutationObserver>
             </EuiPanel>
@@ -826,7 +835,8 @@ export class EuiPopover extends Component<Props, State> {
             className={classes}
             ref={popoverRef}
             onKeyDown={this.onKeyDown}
-            {...rest}>
+            {...rest}
+          >
             <div className={anchorClasses} ref={this.buttonRef}>
               {button instanceof HTMLElement ? null : button}
             </div>

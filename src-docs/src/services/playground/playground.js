@@ -42,7 +42,7 @@ export default ({
     // TODO: Replace `html-format` with something better.
     // Notably, something more jsx-friendly
     try {
-      formatted = format(newCode.trim(), ' '.repeat(4));
+      formatted = format(newCode.trim(), '  '.repeat(1));
     } catch {
       formatted = newCode.trim();
     }
@@ -71,7 +71,8 @@ export default ({
         example={
           <>
             <div
-              className={classNames('playgroundWrapper', playgroundClassName)}>
+              className={classNames('playgroundWrapper', playgroundClassName)}
+            >
               <Compiler
                 {...params.compilerProps}
                 minHeight={0}
@@ -81,10 +82,11 @@ export default ({
             </div>
             <EuiSpacer />
             <EuiCodeBlock
-              language="html"
+              language="jsx"
               fontSize="m"
               paddingSize="m"
-              isCopyable>
+              isCopyable
+            >
               {getSnippet(params.editorProps.code)}
             </EuiCodeBlock>
           </>

@@ -3,14 +3,14 @@ import { slugify } from '../../src/services';
 
 import { createHashHistory } from 'history';
 
-import { GuidePage, GuideSection } from './components';
+import { GuidePage, GuideSection, GuideMarkdownFormat } from './components';
 
 import { EuiErrorBoundary } from '../../src/components';
 
 import { playgroundCreator } from './services/playground';
 
 // Guidelines
-// const GettingStarted = require('!!raw-loader!./views/guidelines/getting_started.md');
+const GettingStarted = require('!!raw-loader!./views/guidelines/getting_started.md');
 
 import AccessibilityGuidelines from './views/guidelines/accessibility';
 
@@ -24,7 +24,7 @@ import WritingGuidelines from './views/guidelines/writing';
 
 import { ColorPaletteExample } from './views/color_palette/color_palette_example';
 
-import { IsColorDarkExample } from './views/is_color_dark/is_color_dark_example';
+import { ColorExample } from './views/color/color_example';
 
 import { PrettyDurationExample } from './views/pretty_duration/pretty_duration_example';
 
@@ -80,6 +80,7 @@ import { DataGridStylingExample } from './views/datagrid/datagrid_styling_exampl
 import { DataGridControlColumnsExample } from './views/datagrid/datagrid_controlcolumns_example';
 import { DataGridFooterRowExample } from './views/datagrid/datagrid_footer_row_example';
 import { DataGridVirtualizationExample } from './views/datagrid/datagrid_virtualization_example';
+import { DataGridRowHeightOptionsExample } from './views/datagrid/datagrid_height_options_example';
 
 import { DatePickerExample } from './views/date_picker/date_picker_example';
 
@@ -221,6 +222,9 @@ import { I18nTokens } from './views/package/i18n_tokens';
 
 import { SuperSelectExample } from './views/super_select/super_select_example';
 
+import { ThemeExample } from './views/theme/theme_example';
+import ThemeValues from './views/theme/values';
+
 /** Elastic Charts */
 
 import { ElasticChartsThemingExample } from './views/elastic_charts/theming_example';
@@ -233,19 +237,14 @@ import { ElasticChartsSparklinesExample } from './views/elastic_charts/sparkline
 
 import { ElasticChartsPieExample } from './views/elastic_charts/pie_example';
 
+import { ElasticChartsAccessibilityExample } from './views/elastic_charts/accessibility_example';
+
 const createExample = (example, customTitle) => {
   if (!example) {
     throw new Error(
       'One of your example pages is undefined. This usually happens when you export or import it with the wrong name.'
     );
   }
-
-  const isPlaygroundUnsupported =
-    // Check for IE11
-    typeof window !== 'undefined' &&
-    typeof document !== 'undefined' &&
-    !!window.MSInputMethodContext &&
-    !!document.documentMode;
 
   const {
     title,
@@ -269,9 +268,7 @@ const createExample = (example, customTitle) => {
   );
 
   let playgroundComponent;
-  if (isPlaygroundUnsupported) {
-    playgroundComponent = null;
-  } else if (playground) {
+  if (playground) {
     if (Array.isArray(playground)) {
       playgroundComponent = playground.map((elm, idx) => {
         return <Fragment key={idx}>{playgroundCreator(elm())}</Fragment>;
@@ -286,7 +283,8 @@ const createExample = (example, customTitle) => {
         intro={intro}
         isBeta={beta}
         playground={playgroundComponent}
-        guidelines={guidelines}>
+        guidelines={guidelines}
+      >
         {renderedSections}
       </GuidePage>
     </EuiErrorBoundary>
@@ -301,34 +299,33 @@ const createExample = (example, customTitle) => {
   };
 };
 
-// const createMarkdownExample = (example, title) => {
-//   const headings = example.default.match(/^(##) (.*)/gm);
+const createMarkdownExample = (example, title) => {
+  const headings = example.default.match(/^(##) (.*)/gm);
 
-//   const sections = headings.map((heading) => {
-//     const title = heading.replace('## ', '');
+  const sections = headings.map((heading) => {
+    const title = heading.replace('## ', '');
 
-//     return { id: slugify(title), title: title };
-//   });
+    return { id: slugify(title), title: title };
+  });
 
-//   return {
-//     name: title,
-//     component: () => (
-//       <GuidePage title={title}>
-//         <GuideMarkdownFormat title={title}>
-//           {example.default}
-//         </GuideMarkdownFormat>
-//       </GuidePage>
-//     ),
-//     sections: sections,
-//   };
-// };
+  return {
+    name: title,
+    component: () => (
+      <GuidePage title={title}>
+        <GuideMarkdownFormat title={title} grow={false}>
+          {example.default}
+        </GuideMarkdownFormat>
+      </GuidePage>
+    ),
+    sections: sections,
+  };
+};
 
 const navigation = [
   {
     name: 'Guidelines',
     items: [
-      // TODO uncomment when EuiMarkdownFormat has a better text formatting
-      // createMarkdownExample(GettingStarted, 'Getting started'),
+      createMarkdownExample(GettingStarted, 'Getting started'),
       createExample(AccessibilityGuidelines, 'Accessibility'),
       {
         name: 'Colors',
@@ -371,10 +368,10 @@ const navigation = [
       KeyPadMenuExample,
       LinkExample,
       PaginationExample,
-      TreeViewExample,
       SideNavExample,
       StepsExample,
       TabsExample,
+      TreeViewExample,
     ].map((example) => createExample(example)),
   },
   {
@@ -388,6 +385,7 @@ const navigation = [
       DataGridControlColumnsExample,
       DataGridFooterRowExample,
       DataGridVirtualizationExample,
+      DataGridRowHeightOptionsExample,
       TableExample,
       TableInMemoryExample,
     ].map((example) => createExample(example)),
@@ -457,6 +455,7 @@ const navigation = [
       ElasticChartsTimeExample,
       ElasticChartsCategoryExample,
       ElasticChartsPieExample,
+      ElasticChartsAccessibilityExample,
     ].map((example) => createExample(example)),
   },
   {
@@ -464,7 +463,7 @@ const navigation = [
     items: [
       AccessibilityExample,
       BeaconExample,
-      IsColorDarkExample,
+      ColorExample,
       ColorPaletteExample,
       CopyExample,
       UtilityClassesExample,
@@ -485,6 +484,17 @@ const navigation = [
       TextDiffExample,
       WindowEventExample,
     ].map((example) => createExample(example)),
+  },
+  {
+    name: 'Theming',
+    items: [
+      createExample(ThemeExample, 'Theme provider'),
+      {
+        name: 'Global values',
+        component: ThemeValues,
+        isNew: true,
+      },
+    ],
   },
   {
     name: 'Package',
@@ -518,12 +528,6 @@ const allRoutes = navigation.reduce((accummulatedRoutes, section) => {
 export default {
   history: createHashHistory(),
   navigation,
-
-  getRouteForPath: (path) => {
-    // React-router kinda sucks. Sometimes the path contains a leading slash, sometimes it doesn't.
-    const normalizedPath = path[0] === '/' ? path.slice(1, path.length) : path;
-    return allRoutes.find((route) => normalizedPath === route.path);
-  },
 
   getAppRoutes: function getAppRoutes() {
     return allRoutes;

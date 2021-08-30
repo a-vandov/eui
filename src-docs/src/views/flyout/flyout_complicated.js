@@ -56,7 +56,8 @@ export default () => {
     <EuiTab
       onClick={() => onSelectedTabChanged(tab.id)}
       isSelected={tab.id === selectedTabId}
-      key={index}>
+      key={index}
+    >
       {tab.name}
     </EuiTab>
   ));
@@ -182,7 +183,8 @@ export default () => {
         ownFocus
         onClose={closeFlyout}
         hideCloseButton
-        aria-labelledby="flyoutComplicatedTitle">
+        aria-labelledby="flyoutComplicatedTitle"
+      >
         <EuiFlyoutHeader hasBorder>
           <EuiTitle size="m">
             <h2 id="flyoutComplicatedTitle">Flyout header</h2>
@@ -204,14 +206,15 @@ export default () => {
                 Even popovers can be included
               </EuiButton>
             }
-            isOpen={isPopoverOpen}>
+            isOpen={isPopoverOpen}
+          >
             <p>
               This is the popover content, notice how it can overflow the
               flyout!
             </p>
           </EuiPopover>
           <EuiSpacer size="m" />
-          <EuiForm>
+          <EuiForm component="form">
             <EuiFormRow label="A SuperSelect field">
               <EuiSuperSelect
                 options={superSelectOptions}
@@ -232,7 +235,8 @@ export default () => {
                 value="configurations"
                 onClick={() => setIsExpressionOpen(!isExpressionOpen)}
               />
-            }>
+            }
+          >
             <EuiComboBox
               selectedOptions={[{ label: 'Option one' }]}
               options={[
@@ -252,7 +256,8 @@ export default () => {
               <EuiButtonEmpty
                 iconType="cross"
                 onClick={closeFlyout}
-                flush="left">
+                flush="left"
+              >
                 Close
               </EuiButtonEmpty>
             </EuiFlexItem>
